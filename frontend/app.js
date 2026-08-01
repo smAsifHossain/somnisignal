@@ -58,6 +58,12 @@
   }
 
   async function checkHealth() {
+    if (!config.LOCAL_DEMO_MODE && !config.ENABLE_RESEARCH_UPLOADS) {
+      setService("research access pending", "offline");
+      uploadButton.disabled = true;
+      uploadMessage.textContent = "The hosted research screening connection is not open yet";
+      return;
+    }
     if (!config.LOCAL_DEMO_MODE && (!baseUrl || baseUrl.includes("example.workers.dev"))) {
       setService("connection not configured", "offline");
       uploadButton.disabled = true;
@@ -69,10 +75,10 @@
       if (!response.ok) throw new Error("offline");
       const health = await response.json();
       if (!health.model_ready) throw new Error("model unavailable");
-      if (!config.LOCAL_DEMO_MODE && !health.public_uploads_enabled) {
+      if (!config.LOCAL_DEMO_MODE && !health.research_demo_uploads_enabled) {
         setService("research access pending", "offline");
         uploadButton.disabled = true;
-        uploadMessage.textContent = "Public research uploads are not yet open";
+        uploadMessage.textContent = "De-identified research uploads are not yet open";
         return;
       }
       setService("screening service online", "online");
@@ -87,8 +93,10 @@
     if (config.LOCAL_DEMO_MODE || !config.TURNSTILE_SITE_KEY || !window.turnstile) return;
     window.turnstile.render("#turnstile-container", {
       sitekey: config.TURNSTILE_SITE_KEY,
+      action: "research_upload",
       callback: (token) => { turnstileToken = token; },
-      "expired-callback": () => { turnstileToken = ""; }
+      "expired-callback": () => { turnstileToken = ""; },
+      "error-callback": () => { turnstileToken = ""; }
     });
   }
 
@@ -193,11 +201,16 @@
 
   uploadForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!config.LOCAL_DEMO_MODE && (!baseUrl || baseUrl.includes("example.workers.dev"))) {
+    if (!config.LOCAL_DEMO_MODE && (
+      !config.ENABLE_RESEARCH_UPLOADS ||
+      !baseUrl ||
+      baseUrl.includes("example.workers.dev") ||
+      !config.TURNSTILE_SITE_KEY
+    )) {
       uploadMessage.textContent = "Configure the hosted screening connection first";
       return;
     }
-    if (!config.LOCAL_DEMO_MODE && config.TURNSTILE_SITE_KEY && !turnstileToken) {
+    if (!config.LOCAL_DEMO_MODE && !turnstileToken) {
       uploadMessage.textContent = "Complete human verification first";
       return;
     }
@@ -217,10 +230,12 @@
     body.delete("screening_consent");
     body.set("adult_confirmed", "true");
     body.set("research_consent", "true");
-    if (config.LOCAL_DEMO_MODE) body.set("non_patient_test_data_confirmed", "true");
+    body.set("non_patient_test_data_confirmed", "true");
 
     try {
-      const requestPath = config.LOCAL_DEMO_MODE ? "/v1/test-predictions" : "/v1/predictions";
+      const requestPath = config.LOCAL_DEMO_MODE
+        ? "/v1/test-predictions"
+        : "/v1/research-predictions";
       const response = await fetch(endpoint(requestPath), {
         method: "POST",
         headers: turnstileToken ? { "X-Turnstile-Token": turnstileToken } : undefined,

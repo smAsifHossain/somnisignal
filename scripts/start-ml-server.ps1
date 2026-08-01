@@ -7,6 +7,10 @@ Set-StrictMode -Version Latest
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $healthUrl = "http://127.0.0.1:8000/health"
 $environmentFile = Join-Path $projectRoot ".env"
+$cloudflaredPath = Join-Path $projectRoot ".tools\bin\cloudflared.exe"
+$wranglerEntryPoint = Join-Path $projectRoot "worker\node_modules\wrangler\bin\wrangler.js"
+$tunnelPidFile = Join-Path $projectRoot ".cloudflare-tunnel.pid"
+$bundledNodePath = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
 
 if (-not (Test-Path -LiteralPath $environmentFile)) {
     $tokenBytes = New-Object byte[] 32
@@ -21,10 +25,15 @@ if (-not (Test-Path -LiteralPath $environmentFile)) {
     @(
         "ML_API_TOKEN=$apiToken"
         "PUBLIC_UPLOADS_ENABLED=false"
+        "RESEARCH_DEMO_UPLOADS_ENABLED=true"
         "REGULATORY_REVIEW_COMPLETE=false"
         "LOCAL_UI_ENABLED=true"
     ) | Set-Content -LiteralPath $environmentFile -Encoding utf8
     Write-Host "Created a private API token in .env. Public uploads remain disabled."
+}
+
+if (-not (Select-String -LiteralPath $environmentFile -Pattern '^RESEARCH_DEMO_UPLOADS_ENABLED=' -Quiet)) {
+    Add-Content -LiteralPath $environmentFile -Value "RESEARCH_DEMO_UPLOADS_ENABLED=true" -Encoding utf8
 }
 
 $existingKeepAlive = Get-CimInstance Win32_Process -Filter "Name = 'wsl.exe'" |
@@ -55,7 +64,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host "Waiting for the ML API health check..."
 $healthy = $false
-for ($attempt = 1; $attempt -le 15; $attempt++) {
+for ($attempt = 1; $attempt -le 45; $attempt++) {
     try {
         $response = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2
         if ($response.status -eq "healthy") {
@@ -74,6 +83,49 @@ if (-not $healthy) {
 }
 
 Write-Host "ML server is healthy." -ForegroundColor Green
+
+if ((Test-Path -LiteralPath $cloudflaredPath) -and (Test-Path -LiteralPath $wranglerEntryPoint)) {
+    $resolvedCloudflaredPath = (Resolve-Path -LiteralPath $cloudflaredPath).Path
+    $existingTunnel = Get-CimInstance Win32_Process -Filter "Name = 'cloudflared.exe'" |
+        Where-Object { $_.ExecutablePath -eq $resolvedCloudflaredPath }
+    if (-not $existingTunnel) {
+        $nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
+        if ($nodeCommand) {
+            $nodePath = $nodeCommand.Source
+        }
+        elseif (Test-Path -LiteralPath $bundledNodePath) {
+            $nodePath = $bundledNodePath
+        }
+        else {
+            throw "Node.js is required to retrieve the authenticated tunnel credentials."
+        }
+
+        Write-Host "Starting the authenticated HTTPS tunnel..."
+        $processInfo = New-Object System.Diagnostics.ProcessStartInfo
+        $processInfo.FileName = $nodePath
+        $processInfo.Arguments = "`"$wranglerEntryPoint`" tunnel run somnisignal-ml-origin --log-level error"
+        $processInfo.WorkingDirectory = Join-Path $projectRoot "worker"
+        $processInfo.UseShellExecute = $false
+        $processInfo.CreateNoWindow = $true
+        $processInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+        $processInfo.EnvironmentVariables["CLOUDFLARED_PATH"] = $resolvedCloudflaredPath
+        $processInfo.EnvironmentVariables["WRANGLER_LOG"] = "error"
+        $tunnelProcess = [System.Diagnostics.Process]::Start($processInfo)
+        if ($null -eq $tunnelProcess) {
+            throw "The HTTPS tunnel failed to start."
+        }
+        Set-Content -LiteralPath $tunnelPidFile -Value $tunnelProcess.Id -Encoding ascii
+        Start-Sleep -Seconds 4
+        if ($tunnelProcess.HasExited) {
+            throw "The HTTPS tunnel stopped before it connected. Run 'wrangler login' again if Cloudflare authorization expired."
+        }
+    }
+    Write-Host "Authenticated HTTPS tunnel is running." -ForegroundColor Green
+}
+else {
+    Write-Host "Cloudflare tunnel tools are not installed; the app is available locally only." -ForegroundColor Yellow
+}
+
 Write-Host "Webapp: http://localhost:8000/"
 Write-Host "API:    http://localhost:8000/api"
 Write-Host "Docs: http://localhost:8000/docs"

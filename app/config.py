@@ -9,6 +9,7 @@ from pathlib import Path
 class Settings:
     api_token: str
     public_uploads_enabled: bool
+    research_demo_uploads_enabled: bool
     regulatory_review_complete: bool
     local_ui_enabled: bool
     model_path: Path
@@ -40,6 +41,7 @@ def get_settings() -> Settings:
     return Settings(
         api_token=os.getenv("ML_API_TOKEN", ""),
         public_uploads_enabled=_as_bool("PUBLIC_UPLOADS_ENABLED"),
+        research_demo_uploads_enabled=_as_bool("RESEARCH_DEMO_UPLOADS_ENABLED"),
         regulatory_review_complete=_as_bool("REGULATORY_REVIEW_COMPLETE"),
         local_ui_enabled=_as_bool("LOCAL_UI_ENABLED"),
         model_path=Path(os.getenv("MODEL_PATH", str(cnn_dir / "rr_cnn.onnx"))),

@@ -70,3 +70,4 @@ class HealthResponse(BaseModel):
     model_version: str | None
     model_release_gate_passed: bool
     public_uploads_enabled: bool
+    research_demo_uploads_enabled: bool

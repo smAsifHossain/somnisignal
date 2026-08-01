@@ -27,6 +27,7 @@ def settings(tmp_path: Path) -> Settings:
     return Settings(
         api_token="x" * 32,
         public_uploads_enabled=False,
+        research_demo_uploads_enabled=False,
         regulatory_review_complete=False,
         local_ui_enabled=False,
         model_path=tmp_path / "unused",

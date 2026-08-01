@@ -16,6 +16,7 @@ services:
     environment:
       ML_API_TOKEN: ${ML_API_TOKEN:?Create .env with ML_API_TOKEN or use the PowerShell launcher}
       PUBLIC_UPLOADS_ENABLED: ${PUBLIC_UPLOADS_ENABLED:-false}
+      RESEARCH_DEMO_UPLOADS_ENABLED: ${RESEARCH_DEMO_UPLOADS_ENABLED:-false}
       REGULATORY_REVIEW_COMPLETE: ${REGULATORY_REVIEW_COMPLETE:-false}
       LOCAL_UI_ENABLED: ${LOCAL_UI_ENABLED:-true}
     security_opt:
