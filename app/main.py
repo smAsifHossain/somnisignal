@@ -245,6 +245,9 @@ def health(request: Request) -> HealthResponse:
         public_uploads_enabled=bool(
             model and model.release_gate_passed and settings.public_release_allowed
         ),
+        research_demo_uploads_enabled=bool(
+            model and settings.research_demo_uploads_enabled
+        ),
     )
 
 
@@ -284,6 +287,56 @@ async def create_prediction(
         ecg_channel=ecg_channel,
         settings=settings,
         manager=manager,
+    )
+    return _accepted(job, settings)
+
+
+@app.post(
+    "/v1/research-predictions",
+    response_model=JobAccepted,
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[Depends(require_api_token)],
+)
+async def create_research_prediction(
+    request: Request,
+    ecg_file: UploadFile = File(...),
+    sampling_rate_hz: int | None = Form(None),
+    ecg_channel: str | None = Form(None),
+    adult_confirmed: bool = Form(...),
+    research_consent: bool = Form(...),
+    non_patient_test_data_confirmed: bool = Form(...),
+) -> JobAccepted:
+    """Analyze only an adult, de-identified public research/test ECG.
+
+    This route is deliberately separate from the gated patient-upload route. It
+    is reachable only through the authenticated proxy and never claims clinical
+    or patient-facing release status.
+    """
+    settings: Settings = request.app.state.settings
+    if not settings.research_demo_uploads_enabled:
+        raise HTTPException(
+            status_code=403,
+            detail="Research-data uploads are disabled.",
+        )
+    if not non_patient_test_data_confirmed:
+        raise HTTPException(
+            status_code=422,
+            detail="Confirm that this file is a de-identified research or test record.",
+        )
+    _validate_upload_request(
+        ecg_file=ecg_file,
+        sampling_rate_hz=sampling_rate_hz,
+        adult_confirmed=adult_confirmed,
+        research_consent=research_consent,
+        settings=settings,
+    )
+    job = await _store_and_submit_upload(
+        ecg_file=ecg_file,
+        sampling_rate_hz=sampling_rate_hz,
+        ecg_channel=ecg_channel,
+        settings=settings,
+        manager=_manager(request),
+        enforce_release_gate=False,
     )
     return _accepted(job, settings)
 

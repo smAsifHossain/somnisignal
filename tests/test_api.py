@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 TOKEN = "local-development-token-change-me-123456"
 os.environ.setdefault("ML_API_TOKEN", TOKEN)
 os.environ.setdefault("LOCAL_UI_ENABLED", "true")
+os.environ.setdefault("RESEARCH_DEMO_UPLOADS_ENABLED", "true")
 
 from app.main import app
 
@@ -67,6 +68,58 @@ def test_consent_and_public_upload_gate() -> None:
             files={"ecg_file": ("record.csv.gz", b"data", "application/gzip")},
         )
         assert gated.status_code == 403
+
+
+def test_authenticated_research_upload_requires_non_patient_confirmation() -> None:
+    compressed = gzip.compress(b"ecg_mv\n0.1\n0.2\n")
+    fields = {
+        "sampling_rate_hz": "100",
+        "adult_confirmed": "true",
+        "research_consent": "true",
+        "non_patient_test_data_confirmed": "true",
+    }
+    with TestClient(app) as client:
+        assert client.post(
+            "/v1/research-predictions",
+            data=fields,
+            files={"ecg_file": ("research.csv.gz", compressed, "application/gzip")},
+        ).status_code == 401
+
+        rejected = client.post(
+            "/v1/research-predictions",
+            headers=HEADERS,
+            data={**fields, "non_patient_test_data_confirmed": "false"},
+            files={"ecg_file": ("research.csv.gz", compressed, "application/gzip")},
+        )
+        assert rejected.status_code == 422
+
+        accepted = client.post(
+            "/v1/research-predictions",
+            headers=HEADERS,
+            data=fields,
+            files={"ecg_file": ("research.csv.gz", compressed, "application/gzip")},
+        )
+        assert accepted.status_code == 202
+        job_id = accepted.json()["job_id"]
+        for _ in range(50):
+            response = client.get(f"/v1/predictions/{job_id}", headers=HEADERS)
+            if response.json()["status"] in {"completed", "failed"}:
+                break
+            time.sleep(0.02)
+        payload = response.json()
+        assert payload["status"] == "completed"
+        assert payload["result"]["outcome"] == "inconclusive"
+        assert not any(
+            "release gate" in reason for reason in payload["result"]["reasons"]
+        )
+
+
+def test_health_distinguishes_research_demo_and_patient_uploads() -> None:
+    with TestClient(app) as client:
+        payload = client.get("/health").json()
+        assert payload["model_ready"] is True
+        assert payload["research_demo_uploads_enabled"] is True
+        assert payload["public_uploads_enabled"] is False
 
 
 def test_delete_job_and_unknown_ids() -> None:

@@ -21,10 +21,10 @@ Run this one line in Windows PowerShell:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\smasi\Documents\Converting PC to ML Server\scripts\start-ml-server.ps1"
 ```
 
-The launcher starts WSL, starts Docker, builds/starts one CPU-only container, and
-checks <http://localhost:8000/health>. It creates a random local bearer token in
-the git-ignored `.env` file on first use. Nothing is registered to start at Windows
-sign-in.
+The launcher starts WSL, Docker, one CPU-only container, and—once configured—the
+authenticated Cloudflare Tunnel. It checks <http://localhost:8000/health> and
+creates a random bearer token in the git-ignored `.env` file on first use. Nothing
+is registered to start at Windows sign-in.
 
 Useful local URLs:
 
@@ -57,10 +57,10 @@ python3 scripts/create-synthetic-ecg.py --force
 Then select `sample-data/synthetic-ecg-6h-100hz.csv.gz` in the webapp and keep the
 sampling rate at `100 Hz`.
 
-Stop the service:
+Stop the service and tunnel:
 
 ```powershell
-wsl.exe -d Ubuntu --cd "C:\Users\smasi\Documents\Converting PC to ML Server" -- docker compose down
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\smasi\Documents\Converting PC to ML Server\scripts\stop-ml-server.ps1"
 ```
 
 ## Model and safety state
@@ -88,6 +88,8 @@ Do not change the last two flags until every item in
 All `/v1/*` endpoints require `Authorization: Bearer <ML_API_TOKEN>`.
 
 - `POST /v1/demo-predictions` — start an allowlisted public demo.
+- `POST /v1/research-predictions` — analyze a confirmed adult,
+  de-identified research/test record; intended only for the protected Worker.
 - `POST /v1/predictions` — gated multipart `.csv.gz` upload.
 - `GET /v1/predictions/{job_id}` — poll queued/running/completed/failed state.
 - `DELETE /v1/predictions/{job_id}` — cancel and delete temporary state.
@@ -180,11 +182,13 @@ release benchmark.
 - The same frontend is baked into the laptop image at `/ui/`; a loopback-only,
   same-origin demo adapter lets the local webapp run allowlisted public records
   without exposing the private bearer token. It rejects non-local hosts/origins.
-- `worker/` is the Cloudflare Worker. It restricts CORS, verifies Turnstile,
-  applies an exact Durable Object rate limit, strips identifying headers, and adds
-  the private bearer token.
-- Configure `frontend/config.js` and `worker/wrangler.toml` only after creating the
-  GitHub Pages site, Turnstile widget, and authenticated HTTPS tunnel.
+- `worker/` is the Cloudflare Worker. It exposes only health, de-identified
+  research uploads, and random-ID job polling/deletion. It restricts CORS,
+  verifies the Turnstile hostname/action, applies a rolling three-per-hour
+  Durable Object limit, strips identifying headers, and adds the private bearer
+  token.
+- The Worker reaches the laptop through a private Workers VPC binding to the
+  authenticated Cloudflare Tunnel; the origin has no public hostname.
 
 Never expose port 8000 directly or put `ML_API_TOKEN` in frontend code. If the
 laptop is offline, the proxy returns a generic temporary-offline response and never

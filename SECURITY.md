@@ -3,6 +3,8 @@
 - The laptop binds FastAPI to localhost and must be reached only through an
   authenticated HTTPS tunnel and the Cloudflare Worker.
 - The Worker is the CORS boundary. Laptop CORS middleware is intentionally absent.
+- The Worker never exposes the gated patient-upload route. Its upload route accepts
+  only records explicitly confirmed as adult, de-identified research/test data.
 - API bearer tokens are compared through fixed-length SHA-256 digests using a
   constant-time comparison.
 - No access log is emitted. Application code does not log filenames, samples,

@@ -1,10 +1,12 @@
 .venv/
+node_modules/
 .tools/
 .agents/
 .codex/
 __pycache__/
 *.py[cod]
 .env
+.cloudflare-tunnel.pid
 *.joblib
 *.pkl
 training/data/

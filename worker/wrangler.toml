@@ -1,10 +1,15 @@
 name = "somnisignal-screening-proxy"
 main = "src/index.js"
-compatibility_date = "2026-07-19"
+compatibility_date = "2026-08-01"
 
 [vars]
 ALLOWED_ORIGIN = "https://smasifhossain.github.io"
-ML_API_BASE_URL = "https://YOUR-AUTHENTICATED-TUNNEL.example.com"
+TURNSTILE_EXPECTED_HOSTNAME = "smasifhossain.github.io"
+
+[[vpc_networks]]
+binding = "ML_ORIGIN"
+tunnel_id = "3391ed93-e51e-472d-893f-121edef9a72e"
+remote = true
 
 [[durable_objects.bindings]]
 name = "RATE_LIMITER"

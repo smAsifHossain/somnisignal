@@ -1,4 +1,8 @@
-const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 25 * 1024 * 1024 + 128 * 1024;
+const TURNSTILE_ACTION = "research_upload";
+const RATE_LIMIT = 3;
+const RATE_WINDOW_MS = 60 * 60 * 1000;
+const PRIVATE_ORIGIN = "http://localhost:8000";
 
 function corsHeaders(origin) {
   return {
@@ -8,14 +12,19 @@ function corsHeaders(origin) {
     "Access-Control-Max-Age": "86400",
     "Cache-Control": "no-store",
     "Referrer-Policy": "no-referrer",
-    "X-Content-Type-Options": "nosniff"
+    "X-Content-Type-Options": "nosniff",
+    "Vary": "Origin"
   };
 }
 
-function jsonResponse(payload, status, origin) {
+function jsonResponse(payload, status, origin, extraHeaders = {}) {
   return new Response(JSON.stringify(payload), {
     status,
-    headers: { "Content-Type": "application/json", ...corsHeaders(origin) }
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders(origin),
+      ...extraHeaders
+    }
   });
 }
 
@@ -28,23 +37,42 @@ async function hashIp(ip, salt) {
     ["sign"]
   );
   const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(ip));
-  return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return Array.from(
+    new Uint8Array(signature),
+    (byte) => byte.toString(16).padStart(2, "0")
+  ).join("");
 }
 
 async function verifyTurnstile(request, env, ip) {
   const token = request.headers.get("X-Turnstile-Token") || "";
-  if (!token || !env.TURNSTILE_SECRET) return false;
+  if (
+    !token ||
+    token.length > 2048 ||
+    !env.TURNSTILE_SECRET ||
+    !env.TURNSTILE_EXPECTED_HOSTNAME
+  ) {
+    return false;
+  }
+
   const body = new FormData();
   body.set("secret", env.TURNSTILE_SECRET);
   body.set("response", token);
   body.set("remoteip", ip);
-  const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    body
-  });
-  if (!response.ok) return false;
-  const result = await response.json();
-  return result.success === true;
+  body.set("idempotency_key", crypto.randomUUID());
+
+  try {
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      { method: "POST", body }
+    );
+    if (!response.ok) return false;
+    const result = await response.json();
+    return result.success === true &&
+      result.hostname === env.TURNSTILE_EXPECTED_HOSTNAME &&
+      result.action === TURNSTILE_ACTION;
+  } catch {
+    return false;
+  }
 }
 
 export class RateLimiter {
@@ -53,21 +81,50 @@ export class RateLimiter {
   }
 
   async fetch() {
-    const currentHour = Math.floor(Date.now() / 3_600_000);
-    const stored = (await this.state.storage.get("counter")) || { hour: currentHour, count: 0 };
-    const counter = stored.hour === currentHour ? stored : { hour: currentHour, count: 0 };
-    if (counter.count >= 3) {
-      return new Response(null, { status: 429 });
+    const now = Date.now();
+    const cutoff = now - RATE_WINDOW_MS;
+    const stored = (await this.state.storage.get("timestamps")) || [];
+    const timestamps = stored.filter((timestamp) => timestamp > cutoff);
+
+    if (timestamps.length >= RATE_LIMIT) {
+      const retryAfter = Math.max(1, Math.ceil((timestamps[0] + RATE_WINDOW_MS - now) / 1000));
+      return new Response(null, {
+        status: 429,
+        headers: { "Retry-After": String(retryAfter) }
+      });
     }
-    counter.count += 1;
-    await this.state.storage.put("counter", counter, { expirationTtl: 3700 });
+
+    timestamps.push(now);
+    await this.state.storage.put("timestamps", timestamps);
+    await this.state.storage.setAlarm(timestamps[0] + RATE_WINDOW_MS);
     return new Response(null, { status: 204 });
   }
+
+  async alarm() {
+    const now = Date.now();
+    const timestamps = ((await this.state.storage.get("timestamps")) || [])
+      .filter((timestamp) => timestamp > now - RATE_WINDOW_MS);
+    if (timestamps.length === 0) {
+      await this.state.storage.deleteAll();
+      return;
+    }
+    await this.state.storage.put("timestamps", timestamps);
+    await this.state.storage.setAlarm(timestamps[0] + RATE_WINDOW_MS);
+  }
+}
+
+function isAllowedRoute(method, pathname) {
+  if (method === "GET" && pathname === "/health") return true;
+  if (method === "POST" && pathname === "/v1/research-predictions") return true;
+  if (["GET", "DELETE"].includes(method) && /^\/v1\/predictions\/[0-9a-f]{32}$/.test(pathname)) {
+    return true;
+  }
+  return false;
 }
 
 async function proxyRequest(request, env, allowedOrigin) {
   const incomingUrl = new URL(request.url);
-  const upstreamBase = new URL(env.ML_API_BASE_URL);
+  const upstreamBase = new URL(PRIVATE_ORIGIN);
   const upstreamUrl = new URL(incomingUrl.pathname + incomingUrl.search, upstreamBase);
   const headers = new Headers({
     "Authorization": `Bearer ${env.ML_API_TOKEN}`,
@@ -83,7 +140,7 @@ async function proxyRequest(request, env, allowedOrigin) {
     body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body
   };
   try {
-    const upstream = await fetch(upstreamUrl, init);
+    const upstream = await env.ML_ORIGIN.fetch(upstreamUrl, init);
     const responseHeaders = new Headers(corsHeaders(allowedOrigin));
     responseHeaders.set("Content-Type", upstream.headers.get("Content-Type") || "application/json");
     const retryAfter = upstream.headers.get("Retry-After");
@@ -110,28 +167,39 @@ export default {
     }
 
     const url = new URL(request.url);
-    const allowedPath = url.pathname === "/health" ||
-      url.pathname === "/v1/demo-predictions" ||
-      url.pathname === "/v1/predictions" ||
-      /^\/v1\/predictions\/[0-9a-f]{32}$/.test(url.pathname);
-    if (!allowedPath || !["GET", "POST", "DELETE"].includes(request.method)) {
+    if (!isAllowedRoute(request.method, url.pathname)) {
       return jsonResponse({ detail: "Not found." }, 404, allowedOrigin);
     }
 
+    if (!env.ML_API_TOKEN || !env.ML_ORIGIN) {
+      return jsonResponse({ detail: "Screening service temporarily offline." }, 503, allowedOrigin);
+    }
+
     if (request.method === "POST") {
-      const length = Number(request.headers.get("Content-Length") || "0");
-      if (length > MAX_UPLOAD_BYTES) {
+      const lengthHeader = request.headers.get("Content-Length");
+      const length = lengthHeader === null ? null : Number(lengthHeader);
+      if (length !== null && (!Number.isFinite(length) || length < 0 || length > MAX_REQUEST_BYTES)) {
         return jsonResponse({ detail: "Upload exceeds the 25 MB limit." }, 413, allowedOrigin);
       }
-      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-      if (!(await verifyTurnstile(request, env, ip))) {
+
+      const ip = request.headers.get("CF-Connecting-IP") || "";
+      if (!ip || !(await verifyTurnstile(request, env, ip))) {
         return jsonResponse({ detail: "Human verification failed." }, 403, allowedOrigin);
       }
+      if (!env.RATE_LIMIT_SALT || !env.RATE_LIMITER) {
+        return jsonResponse({ detail: "Screening service temporarily offline." }, 503, allowedOrigin);
+      }
+
       const key = await hashIp(ip, env.RATE_LIMIT_SALT);
       const limiter = env.RATE_LIMITER.get(env.RATE_LIMITER.idFromName(key));
       const limit = await limiter.fetch("https://rate-limit.internal/");
       if (limit.status === 429) {
-        return jsonResponse({ detail: "Hourly screening limit reached." }, 429, allowedOrigin);
+        return jsonResponse(
+          { detail: "Three research screenings per hour are allowed." },
+          429,
+          allowedOrigin,
+          { "Retry-After": limit.headers.get("Retry-After") || "3600" }
+        );
       }
     }
 
