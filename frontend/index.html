@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Adult-only ECG sleep-apnea research screening demonstration. Not a diagnosis.">
+    <meta name="referrer" content="no-referrer">
+    <title>SomniSignal — ECG sleep apnea risk prediction</title>
+    <script src="theme.js?v=2026073102"></script>
+    <link rel="stylesheet" href="styles.css?v=2026073102">
+    <script src="config.js?v=2026073102"></script>
+    <script src="app.js?v=2026073102" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#screening">Skip to ECG screening</a>
+
+    <header class="site-header">
+      <nav class="nav-shell" aria-label="Main navigation">
+        <a class="brand" href="#top" aria-label="SomniSignal home">
+          <span class="brand-mark" aria-hidden="true"><span class="moon"></span><span class="prompt">⌁</span></span>
+          <span>somnisignal</span>
+        </a>
+        <div class="nav-links">
+          <a href="#how">How it works</a>
+          <a href="#outcomes">Outcomes</a>
+          <a href="#limits">Safety</a>
+          <button class="theme-toggle" type="button" aria-label="Switch color theme"><span aria-hidden="true">☀</span><b>light</b></button>
+          <a class="nav-cta" href="#screening">Analyze ECG</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section id="top" class="hero starfield">
+        <div class="hero-shell">
+          <p class="kicker"><span></span> adult ECG research screening</p>
+          <h1>An ECG can hint at the night.<br>It cannot diagnose it.</h1>
+          <p class="hero-copy">Upload a de-identified overnight ECG for an elevated- or lower-risk prediction based on sleep-apnea-associated cardiac patterns.</p>
+
+          <div id="screening" class="console" aria-labelledby="console-title">
+            <div class="console-bar">
+              <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              <span id="console-title" class="console-title">somnisignal screen</span>
+              <span id="service-status" class="service-status checking"><i></i>checking</span>
+            </div>
+
+            <div class="console-body">
+              <div class="console-intro">
+                <p><span class="prompt-sign">$</span> screen an overnight ECG record</p>
+                <p class="console-muted">Provide the signal file and recording details below. Raw ECG data is deleted after processing.</p>
+              </div>
+
+              <section id="upload-panel" class="upload-panel" aria-labelledby="upload-title">
+                <div class="upload-heading">
+                  <div><span class="terminal-branch">01</span> <strong id="upload-title">Upload an ECG record</strong></div>
+                  <span>research data only</span>
+                </div>
+                <p class="upload-copy">Use only de-identified research-record data. SomniSignal normalizes common ECG formats before analysis and does not retain the raw signal.</p>
+                <form id="upload-form">
+                  <div class="upload-fields">
+                    <label class="file-field"><span class="file-icon" aria-hidden="true">↑</span><span><strong>Choose an ECG file</strong><small>CSV/CSV.GZ · EDF/BDF · NPY · zipped WFDB</small></span><input id="ecg-file" name="ecg_file" type="file" accept=".csv,.csv.gz,.edf,.bdf,.npy,.zip,application/gzip,application/zip" required></label>
+                    <label class="rate-field"><span>sampling rate</span><input id="sampling-rate" name="sampling_rate_hz" type="number" min="80" max="250" value="100"><small>required for CSV/NPY</small></label>
+                    <label class="channel-field"><span>ECG channel</span><input id="ecg-channel" name="ecg_channel" type="text" maxlength="64" placeholder="auto"><small>optional label or zero-based index</small></label>
+                  </div>
+                  <div class="consent-grid upload-consent">
+                    <label class="check-line combined-consent"><input name="screening_consent" type="checkbox" required><span>I confirm this is a de-identified adult research record and understand that the result is experimental, non-diagnostic, and not medical advice.</span></label>
+                  </div>
+                  <div id="turnstile-container" class="turnstile-wrap" aria-label="Human verification"></div>
+                  <div class="action-row">
+                    <button id="run-upload" class="run-button" type="submit"><span aria-hidden="true">⌁</span> analyze ECG record</button>
+                    <span id="upload-message" class="form-message" role="status" aria-live="polite">Choose a file to begin</span>
+                  </div>
+                </form>
+
+                <div id="analysis-live" class="analysis-live" aria-live="polite" hidden>
+                  <div class="analysis-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+                  <div class="analysis-copy"><strong id="analysis-stage">Preparing ECG analysis</strong><span id="analysis-detail">Securely reading the uploaded record</span></div>
+                  <time id="analysis-elapsed">00:00</time>
+                  <div class="analysis-track" aria-hidden="true"><span></span></div>
+                </div>
+              </section>
+
+              <section id="result-content" class="result-terminal" aria-labelledby="result-heading" hidden>
+                <div class="result-heading-row">
+                  <div><span class="terminal-branch">02</span> <strong id="result-heading">Your screening result</strong></div>
+                  <span id="result-outcome" class="outcome"></span>
+                </div>
+                <div id="result-summary" class="result-summary">
+                  <span id="result-symbol" aria-hidden="true">~</span>
+                  <div><h3 id="result-title">Result ready</h3><p id="result-explanation"></p></div>
+                </div>
+                <div class="result-grid">
+                  <div><span>model-estimated risk score</span><strong id="risk-score">—</strong></div>
+                  <div><span>minutes analyzed</span><strong id="analyzed-minutes">—</strong></div>
+                  <div><span>minutes with apnea-like patterns</span><strong id="apnea-minutes">—</strong></div>
+                  <div><span>signal quality</span><strong id="signal-quality">—</strong></div>
+                </div>
+                <div class="score-track" aria-hidden="true"><span id="risk-meter"></span></div>
+                <p id="result-next-step" class="result-next-step"></p>
+                <p id="result-disclaimer" class="result-disclaimer"></p>
+              </section>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section id="how" class="section section-alt">
+        <div class="section-shell">
+          <p class="section-label">from ECG signal to your sleep apnea risk prediction</p>
+          <h2>How SomniSignal analyzes an overnight ECG.</h2>
+          <div class="process-grid">
+            <article><span class="step-number">01</span><h3>Validate the recording</h3><p>The app checks duration, sample rate, missing values, clipping, and whether the file contains a usable ECG channel.</p><code>file → quality check</code></article>
+            <article><span class="step-number">02</span><h3>Detect each heartbeat</h3><p>QRS peaks are located and converted into beat-to-beat intervals. Implausible or isolated noisy intervals are filtered.</p><code>ECG → beats → RR intervals</code></article>
+            <article><span class="step-number">03</span><h3>Measure overnight patterns</h3><p>Overlapping five-minute windows measure heart-rate variability and frequency patterns associated with apnea events.</p><code>RR intervals → HRV features</code></article>
+            <article><span class="step-number">04</span><h3>Report the prediction</h3><p>The model combines the window estimates into a lower- or elevated-risk prediction with clear next-step guidance.</p><code>patterns → nightly prediction</code></article>
+          </div>
+        </div>
+      </section>
+
+      <section id="outcomes" class="section">
+        <div class="section-shell narrow">
+          <p class="section-label">understanding your prediction</p>
+          <h2>A clear risk prediction, with appropriate clinical context.</h2>
+          <div class="outcome-list">
+            <article><span class="outcome-icon elevated">↑</span><div><h3>Elevated screening pattern</h3><p>The ECG contains enough apnea-like heart-rate patterns to suggest elevated risk. This supports seeking a professional sleep evaluation; it does not confirm apnea.</p></div><code>next: discuss PSG or HSAT</code></article>
+            <article><span class="outcome-icon low">✓</span><div><h3>Low screening pattern</h3><p>The model found very few apnea-like minutes. This lowers the research estimate, but it cannot rule out apnea when symptoms remain.</p></div><code>next: consider symptoms</code></article>
+            <article><span class="outcome-icon unclear">↕</span><div><h3>Borderline prediction</h3><p>When the nightly burden falls between the primary thresholds, the research score determines whether the prediction is reported as lower or elevated risk.</p></div><code>borderline burden → score prediction</code></article>
+            <article><span class="outcome-icon unclear">!</span><div><h3>Prediction unavailable</h3><p>Only an unreadable recording or failed signal-quality check prevents prediction. A better recording is required before analysis can continue.</p></div><code>quality fail → no prediction</code></article>
+          </div>
+        </div>
+      </section>
+
+      <section id="limits" class="clinical-note">
+        <div class="section-shell">
+          <span aria-hidden="true">!</span>
+          <p><strong>This cannot diagnose or rule out sleep apnea.</strong> Discuss symptoms and appropriate polysomnography or technically adequate home sleep-apnea testing with a qualified clinician.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-shell">
+        <div class="footer-branding">
+          <a class="brand" href="#top"><span class="brand-mark small" aria-hidden="true"><span class="moon"></span><span class="prompt">⌁</span></span><span>somnisignal</span></a>
+          <span>Developed by <a href="https://www.linkedin.com/in/smasifhossain" target="_blank" rel="noopener noreferrer">S M Asif Hossain</a></span>
+        </div>
+        <p>No accounts · no analytics · no patient history</p>
+        <nav class="footer-links" aria-label="Footer navigation"><a href="privacy.html">Privacy</a><a href="license.html">MIT License</a></nav>
+      </div>
+    </footer>
+  </body>
+</html>

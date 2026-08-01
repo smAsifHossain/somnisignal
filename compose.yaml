@@ -1,0 +1,37 @@
+services:
+  ml-api:
+    build:
+      context: .
+    container_name: portfolio-ml-api
+    restart: unless-stopped
+    init: true
+    ports:
+      - "127.0.0.1:8000:8000"
+    mem_limit: 768m
+    cpus: 2.0
+    pids_limit: 100
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m
+    environment:
+      ML_API_TOKEN: ${ML_API_TOKEN:?Create .env with ML_API_TOKEN or use the PowerShell launcher}
+      PUBLIC_UPLOADS_ENABLED: ${PUBLIC_UPLOADS_ENABLED:-false}
+      REGULATORY_REVIEW_COMPLETE: ${REGULATORY_REVIEW_COMPLETE:-false}
+      LOCAL_UI_ENABLED: ${LOCAL_UI_ENABLED:-true}
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

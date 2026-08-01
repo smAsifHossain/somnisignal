@@ -1,0 +1,15 @@
+.venv/
+.tools/
+.agents/
+.codex/
+__pycache__/
+*.py[cod]
+.env
+*.joblib
+*.pkl
+training/data/
+training/cache/
+*.part
+sample-data/*
+!sample-data/README.md
+artifacts/candidates/smoke/

@@ -1,0 +1,12 @@
+.git
+.gitignore
+.github
+.venv
+.pytest_cache
+__pycache__
+*.py[cod]
+*.log
+scripts
+worker
+training/data
+sample-data

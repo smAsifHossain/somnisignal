@@ -1,0 +1,70 @@
+{
+  "selected_for_research_demo": "compact_rr_cnn",
+  "selected_for_patient_release": null,
+  "deployment_changed": true,
+  "reason": "The compact RR-CNN passed the primary A/C performance thresholds and is deployed for de-identified research demonstrations; patient-facing release remains gated.",
+  "candidates": [
+    {
+      "name": "logistic_regression",
+      "artifact": "model.joblib",
+      "metrics": {
+        "sensitivity": 0.95,
+        "specificity": 0.2222222222222222,
+        "balanced_accuracy": 0.586111111111111,
+        "borderline_inconclusive": 1,
+        "borderline_total": 5,
+        "balanced_accuracy_95ci": [
+          0.45649758454106276,
+          0.75
+        ],
+        "candidate_window_balanced_accuracy": {
+          "logistic_regression": 0.7443165851581465,
+          "hist_gradient_boosting": 0.7617909137636532
+        },
+        "minute_brier_score": 0.16886026076311703,
+        "minute_brier_score_95ci": [
+          0.1411341853226245,
+          0.19617279263586934
+        ],
+        "threshold": 0.2842650419002226
+      },
+      "release_gate_passed": false,
+      "status": "superseded_baseline"
+    },
+    {
+      "name": "apdet_style_scipy_reproduction",
+      "artifact": null,
+      "metrics": {
+        "sensitivity": 0.65,
+        "specificity": 1.0,
+        "balanced_accuracy": 0.825
+      },
+      "release_gate_passed": false,
+      "status": "research_comparator"
+    },
+    {
+      "name": "compact_rr_cnn",
+      "artifact": "candidates/rr_cnn.onnx",
+      "metrics": {
+        "sensitivity": 0.85,
+        "specificity": 0.8888888888888888,
+        "balanced_accuracy": 0.8694444444444445,
+        "borderline_inconclusive": 1,
+        "borderline_total": 5,
+        "balanced_accuracy_95ci": [
+          0.7172596500721501,
+          0.975
+        ],
+        "minute_brier_score": 0.12408007678008395,
+        "minute_brier_score_95ci": [
+          0.09355414509982615,
+          0.15177553406004043
+        ],
+        "mean_fold_window_balanced_accuracy": 0.8166393878731724,
+        "threshold": 0.3304963947420298
+      },
+      "release_gate_passed": false,
+      "status": "deployed_research_demo"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "model_version": "physionet-apnea-ecg-1.0.0",
+  "release_gate_passed": false,
+  "artifact_sha256": "5eca9979b21254eb96ead24d7781d0a37e92a8e026e13097f72b1d72f0b14e76",
+  "dataset": "PhysioNet Apnea-ECG Database v1.0.0, DOI:10.13026/C23W2R",
+  "training_commit": "unknown",
+  "selected_model": "logistic_regression",
+  "feature_names": [
+    "mean_nn_ms",
+    "median_nn_ms",
+    "sdnn_ms",
+    "rmssd_ms",
+    "pnn50",
+    "median_hr_bpm",
+    "iqr_hr_bpm",
+    "apnea_band_power",
+    "lf_power",
+    "hf_power",
+    "lf_hf_ratio",
+    "spectral_entropy",
+    "artifact_rate"
+  ],
+  "metrics": {
+    "sensitivity": 0.95,
+    "specificity": 0.2222222222222222,
+    "balanced_accuracy": 0.586111111111111,
+    "borderline_inconclusive": 1,
+    "borderline_total": 5,
+    "balanced_accuracy_95ci": [
+      0.45649758454106276,
+      0.75
+    ],
+    "candidate_window_balanced_accuracy": {
+      "logistic_regression": 0.7443165851581465,
+      "hist_gradient_boosting": 0.7617909137636532
+    },
+    "minute_brier_score": 0.16886026076311703,
+    "minute_brier_score_95ci": [
+      0.1411341853226245,
+      0.19617279263586934
+    ],
+    "threshold": 0.2842650419002226
+  },
+  "training_records": 34,
+  "excluded_records": [
+    "c06 (duplicate of c05)"
+  ],
+  "qrs_source": "WFDB GQRS detection"
+}

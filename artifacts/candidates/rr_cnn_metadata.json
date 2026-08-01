@@ -1,0 +1,60 @@
+{
+  "model_version": "somnisignal-rr-cnn-1.0.0",
+  "candidate_only": false,
+  "deployed": true,
+  "deployment_scope": "adult de-identified research demonstration only",
+  "release_gate_passed": false,
+  "artifact_sha256": "b3d959f9d436de6bd0da9d98ab30512a4d1a1c227f04e7ca9a2f95ac11b32ef3",
+  "artifact_files_sha256": {
+    "rr_cnn.onnx": "b3d959f9d436de6bd0da9d98ab30512a4d1a1c227f04e7ca9a2f95ac11b32ef3",
+    "rr_cnn.onnx.data": "51c0bbba0a77a991e84df7dcf4687ed4d07ed1fb249aad378c6c08fc43904d5c"
+  },
+  "dataset": "PhysioNet Apnea-ECG Database v1.0.0, DOI:10.13026/C23W2R",
+  "training_commit": "unknown",
+  "input": {
+    "kind": "rr_sequence",
+    "sample_rate_hz": 4,
+    "window_seconds": 300,
+    "sequence_length": 1200,
+    "normalization_mean": 0.9218226075172424,
+    "normalization_standard_deviation": 0.1487528532743454
+  },
+  "calibration": {
+    "coefficient": [
+      0.9517424960102396
+    ],
+    "intercept": [
+      -0.5688366414619864
+    ]
+  },
+  "metrics": {
+    "sensitivity": 0.85,
+    "specificity": 0.8888888888888888,
+    "balanced_accuracy": 0.8694444444444445,
+    "borderline_inconclusive": 1,
+    "borderline_total": 5,
+    "balanced_accuracy_95ci": [
+      0.7172596500721501,
+      0.975
+    ],
+    "minute_brier_score": 0.12408007678008395,
+    "minute_brier_score_95ci": [
+      0.09355414509982615,
+      0.15177553406004043
+    ],
+    "mean_fold_window_balanced_accuracy": 0.8166393878731724,
+    "threshold": 0.3304963947420298
+  },
+  "validation": {
+    "strategy": "repeated_5_fold_stratified_patient_grouped",
+    "repeats": 3,
+    "folds": 5,
+    "epochs_per_fold": 6
+  },
+  "training_records": 34,
+  "excluded_records": [
+    "c06 (duplicate of c05)"
+  ],
+  "qrs_source": "WFDB GQRS detection",
+  "final_training_epochs": 4
+}

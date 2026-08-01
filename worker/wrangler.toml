@@ -1,0 +1,20 @@
+name = "somnisignal-screening-proxy"
+main = "src/index.js"
+compatibility_date = "2026-07-19"
+
+[vars]
+ALLOWED_ORIGIN = "https://smasifhossain.github.io"
+ML_API_BASE_URL = "https://YOUR-AUTHENTICATED-TUNNEL.example.com"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiter"]
+
+# Add secrets with:
+# npx wrangler secret put ML_API_TOKEN
+# npx wrangler secret put TURNSTILE_SECRET
+# npx wrangler secret put RATE_LIMIT_SALT

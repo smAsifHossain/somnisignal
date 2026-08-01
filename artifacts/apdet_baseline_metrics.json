@@ -1,0 +1,146 @@
+{
+  "implementation": "apdet_style_scipy_reproduction",
+  "minute_balanced_accuracy": 0.7080229499815607,
+  "sensitivity": 0.65,
+  "specificity": 1.0,
+  "balanced_accuracy": 0.825,
+  "release_gate_passed": false,
+  "per_record": {
+    "a01": {
+      "analyzed_minutes": 488,
+      "detected_minutes": 198
+    },
+    "a02": {
+      "analyzed_minutes": 526,
+      "detected_minutes": 0
+    },
+    "a03": {
+      "analyzed_minutes": 518,
+      "detected_minutes": 228
+    },
+    "a04": {
+      "analyzed_minutes": 492,
+      "detected_minutes": 384
+    },
+    "a05": {
+      "analyzed_minutes": 449,
+      "detected_minutes": 215
+    },
+    "a06": {
+      "analyzed_minutes": 505,
+      "detected_minutes": 0
+    },
+    "a07": {
+      "analyzed_minutes": 506,
+      "detected_minutes": 95
+    },
+    "a08": {
+      "analyzed_minutes": 496,
+      "detected_minutes": 207
+    },
+    "a09": {
+      "analyzed_minutes": 493,
+      "detected_minutes": 0
+    },
+    "a10": {
+      "analyzed_minutes": 512,
+      "detected_minutes": 20
+    },
+    "a11": {
+      "analyzed_minutes": 463,
+      "detected_minutes": 100
+    },
+    "a12": {
+      "analyzed_minutes": 572,
+      "detected_minutes": 305
+    },
+    "a13": {
+      "analyzed_minutes": 490,
+      "detected_minutes": 222
+    },
+    "a14": {
+      "analyzed_minutes": 509,
+      "detected_minutes": 203
+    },
+    "a15": {
+      "analyzed_minutes": 505,
+      "detected_minutes": 356
+    },
+    "a16": {
+      "analyzed_minutes": 477,
+      "detected_minutes": 115
+    },
+    "a17": {
+      "analyzed_minutes": 480,
+      "detected_minutes": 40
+    },
+    "a18": {
+      "analyzed_minutes": 488,
+      "detected_minutes": 0
+    },
+    "a19": {
+      "analyzed_minutes": 497,
+      "detected_minutes": 204
+    },
+    "a20": {
+      "analyzed_minutes": 505,
+      "detected_minutes": 185
+    },
+    "b01": {
+      "analyzed_minutes": 482,
+      "detected_minutes": 0
+    },
+    "b02": {
+      "analyzed_minutes": 517,
+      "detected_minutes": 44
+    },
+    "b03": {
+      "analyzed_minutes": 436,
+      "detected_minutes": 72
+    },
+    "b04": {
+      "analyzed_minutes": 423,
+      "detected_minutes": 0
+    },
+    "b05": {
+      "analyzed_minutes": 428,
+      "detected_minutes": 0
+    },
+    "c01": {
+      "analyzed_minutes": 478,
+      "detected_minutes": 0
+    },
+    "c02": {
+      "analyzed_minutes": 492,
+      "detected_minutes": 0
+    },
+    "c03": {
+      "analyzed_minutes": 449,
+      "detected_minutes": 0
+    },
+    "c04": {
+      "analyzed_minutes": 476,
+      "detected_minutes": 0
+    },
+    "c05": {
+      "analyzed_minutes": 461,
+      "detected_minutes": 0
+    },
+    "c07": {
+      "analyzed_minutes": 424,
+      "detected_minutes": 0
+    },
+    "c08": {
+      "analyzed_minutes": 509,
+      "detected_minutes": 0
+    },
+    "c09": {
+      "analyzed_minutes": 455,
+      "detected_minutes": 0
+    },
+    "c10": {
+      "analyzed_minutes": 422,
+      "detected_minutes": 0
+    }
+  }
+}
