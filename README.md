@@ -8,10 +8,12 @@ SomniSignal turns a de-identified adult single-lead ECG into an elevated-risk,
 low-risk, or inconclusive research prediction. The interface is public, the model
 runs locally, and the laptop is never exposed through an open inbound port.
 
-[![Live app](https://img.shields.io/badge/live%20app-open%20SomniSignal-5664e8?style=for-the-badge)](https://smasifhossain.github.io/somnisignal/)
-[![Python](https://img.shields.io/badge/python-3.12-3776ab?style=for-the-badge&logo=python&logoColor=white)](pyproject.toml)
-[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](backend/app/main.py)
-[![License](https://img.shields.io/badge/license-MIT-172033?style=for-the-badge)](LICENSE)
+<p>
+  <a href="https://smasifhossain.github.io/somnisignal/"><img alt="SomniSignal live application" src="https://img.shields.io/badge/Live%20app-Open-6366f1?style=flat&amp;logo=googlechrome&amp;logoColor=white&amp;labelColor=111827"></a>
+  <a href="pyproject.toml"><img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-3776ab?style=flat&amp;logo=python&amp;logoColor=white&amp;labelColor=111827"></a>
+  <a href="backend/app/main.py"><img alt="FastAPI application" src="https://img.shields.io/badge/API-FastAPI-009688?style=flat&amp;logo=fastapi&amp;logoColor=white&amp;labelColor=111827"></a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-16a34a?style=flat&amp;logo=opensourceinitiative&amp;logoColor=white&amp;labelColor=111827"></a>
+</p>
 
 [Live application](https://smasifhossain.github.io/somnisignal/) | [Model card](docs/MODEL_CARD.md) | [Security design](SECURITY.md) | [Release gates](docs/RELEASE_GATES.md)
 
