@@ -78,7 +78,7 @@
       if (!config.LOCAL_DEMO_MODE && !health.research_demo_uploads_enabled) {
         setService("research access pending", "offline");
         uploadButton.disabled = true;
-        uploadMessage.textContent = "De-identified research uploads are not yet open";
+        uploadMessage.textContent = "Public research uploads are not yet open";
         return;
       }
       setService("screening service online", "online");
@@ -217,12 +217,12 @@
 
     const consent = uploadForm.elements.screening_consent.checked;
     if (!consent) {
-      uploadMessage.textContent = "Confirm the research-data conditions first";
+      uploadMessage.textContent = "Confirm the consent statement first";
       return;
     }
 
     uploadButton.disabled = true;
-    uploadMessage.textContent = "Uploading the de-identified ECG...";
+    uploadMessage.textContent = "Uploading the ECG...";
     document.querySelector("#result-content").hidden = true;
     startLiveAnalysis();
 
@@ -230,7 +230,7 @@
     body.delete("screening_consent");
     body.set("adult_confirmed", "true");
     body.set("research_consent", "true");
-    body.set("non_patient_test_data_confirmed", "true");
+    body.set("data_use_authorized", "true");
 
     try {
       const requestPath = config.LOCAL_DEMO_MODE

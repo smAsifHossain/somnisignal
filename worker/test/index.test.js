@@ -32,15 +32,15 @@ function request(path, init = {}) {
   });
 }
 
-test("rejects untrusted origins and the patient-upload route", async () => {
+test("rejects untrusted origins and the reserved upload route", async () => {
   const env = baseEnv();
   const wrongOrigin = await worker.fetch(new Request("https://worker.example/health", {
     headers: { Origin: "https://attacker.example" }
   }), env);
   assert.equal(wrongOrigin.status, 403);
 
-  const patientUpload = await worker.fetch(request("/v1/predictions", { method: "POST" }), env);
-  assert.equal(patientUpload.status, 404);
+  const reservedUpload = await worker.fetch(request("/v1/predictions", { method: "POST" }), env);
+  assert.equal(reservedUpload.status, 404);
 });
 
 test("research upload requires a valid Turnstile hostname and action", async (t) => {

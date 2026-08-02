@@ -370,7 +370,7 @@ def main() -> None:
         "model_version": "somnisignal-rr-cnn-1.0.0",
         "candidate_only": False,
         "deployed": True,
-        "deployment_scope": "adult de-identified research demonstration only",
+        "deployment_scope": "adult research analysis only",
         "release_gate_passed": release_gate_passed,
         "artifact_sha256": hashlib.sha256(model_path.read_bytes()).hexdigest(),
         "artifact_files_sha256": artifact_files,
@@ -412,8 +412,8 @@ def main() -> None:
 
 ## Status
 
-Deployed for de-identified adult research demonstrations. Public patient release
-gate passed: **{release_gate_passed}**.
+Deployed for adult research analysis. Clinical release gate passed:
+**{release_gate_passed}**.
 
 ## Intended use
 

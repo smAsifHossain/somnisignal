@@ -70,13 +70,13 @@ def test_consent_and_public_upload_gate() -> None:
         assert gated.status_code == 403
 
 
-def test_authenticated_research_upload_requires_non_patient_confirmation() -> None:
+def test_authenticated_research_upload_requires_data_use_authorization() -> None:
     compressed = gzip.compress(b"ecg_mv\n0.1\n0.2\n")
     fields = {
         "sampling_rate_hz": "100",
         "adult_confirmed": "true",
         "research_consent": "true",
-        "non_patient_test_data_confirmed": "true",
+        "data_use_authorized": "true",
     }
     with TestClient(app) as client:
         assert client.post(
@@ -88,7 +88,7 @@ def test_authenticated_research_upload_requires_non_patient_confirmation() -> No
         rejected = client.post(
             "/v1/research-predictions",
             headers=HEADERS,
-            data={**fields, "non_patient_test_data_confirmed": "false"},
+            data={**fields, "data_use_authorized": "false"},
             files={"ecg_file": ("research.csv.gz", compressed, "application/gzip")},
         )
         assert rejected.status_code == 422
@@ -114,7 +114,7 @@ def test_authenticated_research_upload_requires_non_patient_confirmation() -> No
         )
 
 
-def test_health_distinguishes_research_demo_and_patient_uploads() -> None:
+def test_health_distinguishes_research_and_reserved_uploads() -> None:
     with TestClient(app) as client:
         payload = client.get("/health").json()
         assert payload["model_ready"] is True
@@ -178,19 +178,19 @@ def test_local_ui_and_demo_adapter_are_loopback_only() -> None:
         ).status_code == 404
 
 
-def test_local_upload_sandbox_accepts_only_confirmed_test_data() -> None:
+def test_local_upload_requires_data_use_authorization() -> None:
     origin = {"Origin": "http://localhost:8000"}
     compressed = gzip.compress(b"ecg_mv\n0.1\n0.2\n")
     fields = {
         "sampling_rate_hz": "100",
         "adult_confirmed": "true",
         "research_consent": "true",
-        "non_patient_test_data_confirmed": "true",
+        "data_use_authorized": "true",
     }
     with TestClient(app, base_url="http://localhost:8000", headers=origin) as client:
         rejected = client.post(
             "/local/v1/test-predictions",
-            data={**fields, "non_patient_test_data_confirmed": "false"},
+            data={**fields, "data_use_authorized": "false"},
             files={"ecg_file": ("synthetic.csv.gz", compressed, "application/gzip")},
         )
         assert rejected.status_code == 422

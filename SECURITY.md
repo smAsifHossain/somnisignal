@@ -3,8 +3,8 @@
 - The laptop binds FastAPI to localhost and must be reached only through an
   authenticated HTTPS tunnel and the Cloudflare Worker.
 - The Worker is the CORS boundary. Laptop CORS middleware is intentionally absent.
-- The Worker never exposes the gated patient-upload route. Its upload route accepts
-  only records explicitly confirmed as adult, de-identified research/test data.
+- The Worker never exposes the reserved clinical endpoint. Its public upload route
+  requires confirmation that the user is authorized to analyze the adult ECG data.
 - API bearer tokens are compared through fixed-length SHA-256 digests using a
   constant-time comparison.
 - No access log is emitted. Application code does not log filenames, samples,
@@ -17,5 +17,6 @@
 - The container has a read-only root, non-root user, two CPU limit, 768 MB memory
   limit, PID limit, and no-new-privileges.
 
-Report vulnerabilities privately to the repository owner. Do not include real ECG
-data, API tokens, tunnel URLs, or personal information in a report.
+Report vulnerabilities privately to the repository owner. Share only the minimum
+technical detail required, remove identifying or confidential information, and
+never include API tokens or tunnel URLs.

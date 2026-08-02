@@ -1,7 +1,7 @@
 # Release gates
 
-Patient uploads must remain disabled until every checkbox is completed and evidence
-is retained outside the application repository.
+Clinical deployment remains outside the current scope until every checkbox is
+completed and evidence is retained outside the application repository.
 
 ## Model and performance
 

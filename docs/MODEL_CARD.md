@@ -2,10 +2,9 @@
 
 ## Current status
 
-SomniSignal deploys `somnisignal-rr-cnn-1.0.0` for adult, de-identified
-research demonstrations. It is not released for patient-facing screening because
-independent external validation and the privacy, security, clinical, and
-regulatory gates are incomplete.
+SomniSignal deploys `somnisignal-rr-cnn-1.0.0` for adult research analysis. It is
+not a diagnostic or clinical system because independent external validation and
+the privacy, security, clinical, and regulatory gates are incomplete.
 
 ## Intended use
 
@@ -57,6 +56,6 @@ final fitted artifact.
 - A lower-risk result cannot rule out obstructive or central sleep apnea.
 - Pediatric use, diagnosis, treatment selection, and monitoring are out of scope.
 - Consumer wearable files may not match the documented single-lead ECG input.
-- Borderline performance remains insufficient for patient-facing release.
+- Borderline performance remains insufficient for clinical deployment.
 
 See [`RELEASE_GATES.md`](RELEASE_GATES.md) for the remaining public-release requirements.

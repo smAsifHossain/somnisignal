@@ -1,8 +1,8 @@
 {
   "selected_for_research_demo": "compact_rr_cnn",
-  "selected_for_patient_release": null,
+  "selected_for_clinical_release": null,
   "deployment_changed": true,
-  "reason": "The compact RR-CNN passed the primary A/C performance thresholds and is deployed for de-identified research demonstrations; patient-facing release remains gated.",
+  "reason": "The compact RR-CNN passed the primary A/C performance thresholds and is deployed for research analysis; clinical deployment remains gated.",
   "candidates": [
     {
       "name": "logistic_regression",
