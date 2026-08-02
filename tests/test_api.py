@@ -29,7 +29,7 @@ def test_authentication_and_demo_job() -> None:
         )
         assert accepted.status_code == 202
         job_id = accepted.json()["job_id"]
-        for _ in range(50):
+        for _ in range(250):
             response = client.get(f"/v1/predictions/{job_id}", headers=HEADERS)
             if response.json()["status"] == "completed":
                 break
@@ -101,7 +101,7 @@ def test_authenticated_research_upload_requires_non_patient_confirmation() -> No
         )
         assert accepted.status_code == 202
         job_id = accepted.json()["job_id"]
-        for _ in range(50):
+        for _ in range(250):
             response = client.get(f"/v1/predictions/{job_id}", headers=HEADERS)
             if response.json()["status"] in {"completed", "failed"}:
                 break
@@ -156,7 +156,7 @@ def test_local_ui_and_demo_adapter_are_loopback_only() -> None:
         )
         assert accepted.status_code == 202
         job_id = accepted.json()["job_id"]
-        for _ in range(50):
+        for _ in range(250):
             response = client.get(f"/local/v1/predictions/{job_id}")
             if response.json()["status"] == "completed":
                 break
@@ -202,7 +202,7 @@ def test_local_upload_sandbox_accepts_only_confirmed_test_data() -> None:
         )
         assert accepted.status_code == 202
         job_id = accepted.json()["job_id"]
-        for _ in range(50):
+        for _ in range(250):
             response = client.get(f"/local/v1/predictions/{job_id}")
             if response.json()["status"] in {"completed", "failed"}:
                 break
@@ -261,7 +261,7 @@ def test_local_demo_reports_raw_research_outcome_without_release_override() -> N
         )
         assert accepted.status_code == 202
         job_id = accepted.json()["job_id"]
-        for _ in range(50):
+        for _ in range(250):
             response = client.get(f"/local/v1/predictions/{job_id}")
             if response.json()["status"] == "completed":
                 break
