@@ -4,7 +4,7 @@
 
 **Sleep-apnea risk prediction from an overnight ECG, served from a personal laptop.**
 
-SomniSignal turns a de-identified adult single-lead ECG into an elevated-risk,
+SomniSignal turns an adult single-lead ECG into an elevated-risk,
 low-risk, or inconclusive research prediction. The interface is public, the model
 runs locally, and the laptop is never exposed through an open inbound port.
 
@@ -184,9 +184,10 @@ docker compose --env-file .env -f deploy/compose.yaml up --build -d
 
 ## Test with a research record
 
-Use only synthetic data or a public, de-identified adult research record. The web
-interface accepts a file, sampling rate when required, and an optional ECG channel.
-It shows progress while the asynchronous job is queued and processed.
+Use an adult ECG record that you are authorized to analyze. Remove names, record
+numbers, timestamps, and other identifying fields before upload. The web interface
+accepts a file, sampling rate when required, and an optional ECG channel. It shows
+progress while the asynchronous job is queued and processed.
 
 A six-hour synthetic file can be created with:
 
@@ -206,9 +207,9 @@ frontend code.
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
-| `POST` | `/v1/research-predictions` | Submit a confirmed de-identified adult research record |
+| `POST` | `/v1/research-predictions` | Submit an authorized adult ECG record for research analysis |
 | `POST` | `/v1/demo-predictions` | Start an allowlisted PhysioNet demonstration |
-| `POST` | `/v1/predictions` | Patient-upload route, disabled until every release gate passes |
+| `POST` | `/v1/predictions` | Reserved endpoint outside the public research deployment |
 | `GET` | `/v1/predictions/{job_id}` | Poll queued, running, completed, or failed state |
 | `DELETE` | `/v1/predictions/{job_id}` | Cancel a job and delete its temporary state |
 
@@ -301,10 +302,11 @@ application does not provide accounts, history, advertising, or third-party
 analytics, and application logs exclude filenames, ECG values, tokens, request
 bodies, IP addresses, and individual predictions.
 
-The public interface is restricted to de-identified research data. Private patient
-uploads remain disabled until the remaining privacy, regulatory, clinical, security,
-and independent-review requirements in [the release gates](docs/RELEASE_GATES.md)
-are completed.
+The public interface asks users to confirm that they have permission to analyze the
+ECG data and have removed identifying fields. Diagnostic and clinical deployment
+remain outside the current scope until the remaining privacy, regulatory, clinical,
+security, and independent-review requirements in
+[the release gates](docs/RELEASE_GATES.md) are completed.
 
 ## Known limitations
 

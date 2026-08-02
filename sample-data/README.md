@@ -1,6 +1,6 @@
 # SomniSignal test records
 
-These files are public, de-identified research records from the
+These files are public research records from the
 [PhysioNet Apnea-ECG Database](https://physionet.org/content/apnea-ecg/1.0.0/).
 Use the file-name links below to download a record, then upload it through the
 [SomniSignal application](https://smasifhossain.github.io/somnisignal/).

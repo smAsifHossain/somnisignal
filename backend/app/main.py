@@ -272,7 +272,7 @@ async def create_prediction(
     if not model.release_gate_passed or not settings.public_release_allowed:
         raise HTTPException(
             status_code=403,
-            detail="Public uploads are disabled pending model, privacy, and regulatory review.",
+            detail="This endpoint is unavailable in the public research deployment.",
         )
     _validate_upload_request(
         ecg_file=ecg_file,
@@ -304,24 +304,23 @@ async def create_research_prediction(
     ecg_channel: str | None = Form(None),
     adult_confirmed: bool = Form(...),
     research_consent: bool = Form(...),
-    non_patient_test_data_confirmed: bool = Form(...),
+    data_use_authorized: bool = Form(...),
 ) -> JobAccepted:
-    """Analyze only an adult, de-identified public research/test ECG.
+    """Analyze an authorized adult ECG through the public research workflow.
 
-    This route is deliberately separate from the gated patient-upload route. It
-    is reachable only through the authenticated proxy and never claims clinical
-    or patient-facing release status.
+    This route is reachable only through the authenticated proxy and does not
+    claim diagnostic or clinical release status.
     """
     settings: Settings = request.app.state.settings
     if not settings.research_demo_uploads_enabled:
         raise HTTPException(
             status_code=403,
-            detail="Research-data uploads are disabled.",
+            detail="Research uploads are unavailable.",
         )
-    if not non_patient_test_data_confirmed:
+    if not data_use_authorized:
         raise HTTPException(
             status_code=422,
-            detail="Confirm that this file is a de-identified research or test record.",
+            detail="Confirm that you have permission to analyze this adult ECG record.",
         )
     _validate_upload_request(
         ecg_file=ecg_file,
@@ -353,13 +352,13 @@ async def create_local_test_prediction(
     ecg_channel: str | None = Form(None),
     adult_confirmed: bool = Form(...),
     research_consent: bool = Form(...),
-    non_patient_test_data_confirmed: bool = Form(...),
+    data_use_authorized: bool = Form(...),
 ) -> JobAccepted:
     _require_local_ui(request)
-    if not non_patient_test_data_confirmed:
+    if not data_use_authorized:
         raise HTTPException(
             status_code=422,
-            detail="Confirm that this file contains only synthetic or public test data.",
+            detail="Confirm that you have permission to analyze this adult ECG record.",
         )
     settings: Settings = request.app.state.settings
     _validate_upload_request(

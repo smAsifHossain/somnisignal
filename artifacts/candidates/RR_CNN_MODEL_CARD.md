@@ -2,8 +2,7 @@
 
 ## Status
 
-Deployed for de-identified adult research demonstrations. Public patient release
-gate passed: **false**.
+Deployed for adult research analysis. Clinical release gate passed: **false**.
 
 ## Intended use
 
@@ -30,5 +29,5 @@ Three repeated five-fold patient-grouped validation using WFDB GQRS produced:
 
 The model passed the primary A/C sensitivity, specificity, and balanced-accuracy
 thresholds and is deployed for the research demonstration. It remains blocked
-from patient-facing release because borderline behavior, independent external
+from clinical release because borderline behavior, independent external
 validation, privacy, security, and regulatory gates are incomplete.

@@ -246,7 +246,7 @@ def aggregate_night(
     # A technically valid model output is not a clinical screening decision until
     # the locked, patient-grouped release criteria have been met.  Keep the score
     # and estimated minutes visible for research debugging, but never display a
-    # positive or negative patient-facing outcome from an unvalidated artifact.
+    # positive or negative clinical outcome from an unvalidated artifact.
     if not release_gate_passed:
         outcome = ScreeningOutcome.inconclusive
         reasons.append(

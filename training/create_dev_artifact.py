@@ -69,7 +69,7 @@ def create_artifacts(output_dir: Path) -> None:
         "model_version": "dev-unvalidated-0.1.0",
         "release_gate_passed": False,
         "artifact_sha256": hashlib.sha256(artifact_path.read_bytes()).hexdigest(),
-        "dataset": "Synthetic development data; not for patient screening",
+        "dataset": "Synthetic smoke-test data; not a deployable model artifact",
         "metrics": {},
         "warning": "This artifact exists only for authenticated integration testing.",
     }

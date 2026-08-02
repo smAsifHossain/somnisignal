@@ -53,13 +53,13 @@
               <section id="upload-panel" class="upload-panel" aria-labelledby="upload-title">
                 <div class="upload-heading">
                   <div><span class="terminal-branch">01</span> <strong id="upload-title">Upload an ECG record</strong></div>
-                  <span>research data only</span>
+                  <span>authorized data</span>
                 </div>
-                <p class="upload-copy">Use only de-identified research-record data. SomniSignal normalizes common ECG formats before analysis and does not retain the raw signal.</p>
+                <p class="upload-copy">Upload an adult ECG record that you are authorized to analyze. SomniSignal normalizes common ECG formats before analysis and does not retain the raw signal.</p>
                 <div class="sample-data-callout">
                   <div class="sample-data-copy">
                     <strong>Need a file to try?</strong>
-                    <span>Download a de-identified sample ECG record, then upload it below.</span>
+                    <span>Download a sample ECG record, then upload it below.</span>
                   </div>
                   <a class="sample-data-link" href="https://github.com/smAsifHossain/somnisignal/tree/main/sample-data" target="_blank" rel="noopener noreferrer">Browse sample ECG files <span aria-hidden="true">↗</span></a>
                 </div>
@@ -70,7 +70,7 @@
                     <label class="channel-field"><span>ECG channel</span><input id="ecg-channel" name="ecg_channel" type="text" maxlength="64" placeholder="auto"><small>optional label or zero-based index</small></label>
                   </div>
                   <div class="consent-grid upload-consent">
-                    <label class="check-line combined-consent"><input name="screening_consent" type="checkbox" required><span>I confirm this is a de-identified adult research record and understand that the result is experimental, non-diagnostic, and not medical advice.</span></label>
+                    <label class="check-line combined-consent"><input name="screening_consent" type="checkbox" required><span>I confirm that I have permission to use this adult ECG record and understand that the result is experimental, non-diagnostic, and not medical advice.</span></label>
                   </div>
                   <div id="turnstile-container" class="turnstile-wrap" aria-label="Human verification"></div>
                   <div class="action-row">
@@ -152,7 +152,7 @@
           <a class="brand" href="#top"><span class="brand-mark small" aria-hidden="true"><span class="brand-crescent"></span><span class="brand-wave"></span></span><span class="brand-word">Somni<span>Signal</span></span></a>
           <span>Developed by <a href="https://www.linkedin.com/in/smasifhossain" target="_blank" rel="noopener noreferrer">S M Asif Hossain</a></span>
         </div>
-        <p>No accounts · no analytics · no patient history</p>
+        <p>No accounts · no analytics · no retained history</p>
         <nav class="footer-links" aria-label="Footer navigation"><a href="privacy.html">Privacy</a><a href="license.html">MIT License</a><a class="footer-star" href="https://github.com/smAsifHossain/somnisignal" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"></path></svg>Star SomniSignal on GitHub</a></nav>
       </div>
     </footer>

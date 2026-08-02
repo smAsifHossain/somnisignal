@@ -2,7 +2,7 @@
   "model_version": "somnisignal-rr-cnn-1.0.0",
   "candidate_only": false,
   "deployed": true,
-  "deployment_scope": "adult de-identified research demonstration only",
+  "deployment_scope": "adult research analysis only",
   "release_gate_passed": false,
   "artifact_sha256": "b3d959f9d436de6bd0da9d98ab30512a4d1a1c227f04e7ca9a2f95ac11b32ef3",
   "artifact_files_sha256": {

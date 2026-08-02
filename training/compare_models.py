@@ -82,15 +82,15 @@ def main() -> None:
     research_selected = research_candidates[0]["name"] if research_candidates else None
     report = {
         "selected_for_research_demo": research_selected,
-        "selected_for_patient_release": selected,
+        "selected_for_clinical_release": selected,
         "deployment_changed": bool(research_selected),
         "reason": (
             "A candidate passed every release metric; independent external validation is still required."
             if selected
             else (
-                "The compact RR-CNN passed the primary A/C performance thresholds and is deployed for de-identified research demonstrations; patient-facing release remains gated."
+                "The compact RR-CNN passed the primary A/C performance thresholds and is deployed for research analysis; clinical deployment remains gated."
                 if research_selected
-                else "No candidate passed every locked release metric; patient-facing outcomes remain gated."
+                else "No candidate passed every locked release metric; clinical outcomes remain gated."
             )
         ),
         "candidates": candidates,
