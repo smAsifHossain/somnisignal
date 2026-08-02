@@ -1,7 +1,8 @@
 services:
   ml-api:
     build:
-      context: .
+      context: ..
+      dockerfile: deploy/docker/api.Dockerfile
     container_name: portfolio-ml-api
     restart: unless-stopped
     init: true

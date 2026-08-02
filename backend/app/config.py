@@ -36,7 +36,10 @@ def _as_bool(name: str, default: bool = False) -> bool:
 
 
 def get_settings() -> Settings:
-    artifact_dir = Path(os.getenv("ARTIFACT_DIR", "/app/artifacts"))
+    project_root = Path(__file__).resolve().parents[2]
+    artifact_dir = Path(
+        os.getenv("ARTIFACT_DIR", str(project_root / "artifacts"))
+    )
     cnn_dir = artifact_dir / "candidates"
     return Settings(
         api_token=os.getenv("ML_API_TOKEN", ""),

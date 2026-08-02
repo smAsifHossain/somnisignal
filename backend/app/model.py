@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import joblib
 import numpy as np
 
 from app.schemas import ScreeningOutcome, ScreeningResult, SignalQuality
@@ -172,6 +171,11 @@ def _load_rr_cnn(model_path: Path, metadata: dict[str, Any]) -> ModelBundle:
 
 
 def _load_feature_model(model_path: Path, metadata: dict[str, Any]) -> ModelBundle:
+    try:
+        import joblib
+    except ImportError as exc:
+        raise RuntimeError("The legacy feature-model runtime is unavailable.") from exc
+
     artifact = joblib.load(model_path)
     expected_hash = metadata.get("artifact_sha256")
     if expected_hash and _sha256(model_path) != expected_hash:

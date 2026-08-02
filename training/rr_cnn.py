@@ -93,7 +93,7 @@ def _require_torch():
         from torch.utils.data import DataLoader, TensorDataset
     except ImportError as exc:
         raise RuntimeError(
-            "RR-CNN training dependencies are missing; install training/requirements-cnn.txt."
+            "RR-CNN training dependencies are missing; install the cnn project extra."
         ) from exc
     return torch, nn, DataLoader, TensorDataset
 

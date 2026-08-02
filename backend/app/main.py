@@ -70,7 +70,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.add_middleware(RequestSizeLimitMiddleware, max_bytes=25 * 1024 * 1024 + 128 * 1024)
-frontend_directory = Path(__file__).resolve().parent.parent / "frontend"
+frontend_directory = Path(__file__).resolve().parents[2] / "frontend"
 if frontend_directory.exists():
     app.mount("/ui", StaticFiles(directory=frontend_directory, html=True), name="ui")
 

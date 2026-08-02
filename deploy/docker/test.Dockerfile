@@ -3,12 +3,12 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app/backend:/app
 
 WORKDIR /app
-COPY requirements-dev.txt requirements.txt ./
-RUN pip install --no-cache-dir -r requirements-dev.txt
-COPY app ./app
+COPY pyproject.toml LICENSE ./
+COPY backend ./backend
+RUN pip install --no-cache-dir ".[test]"
 COPY frontend ./frontend
 COPY training ./training
 COPY tests ./tests

@@ -59,4 +59,4 @@ final fitted artifact.
 - Consumer wearable files may not match the documented single-lead ECG input.
 - Borderline performance remains insufficient for patient-facing release.
 
-See `RELEASE_GATES.md` for the remaining public-release requirements.
+See [`RELEASE_GATES.md`](RELEASE_GATES.md) for the remaining public-release requirements.

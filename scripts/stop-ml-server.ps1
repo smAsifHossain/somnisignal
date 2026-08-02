@@ -5,6 +5,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
+$composeFile = "deploy/compose.yaml"
 $cloudflaredPath = Join-Path $projectRoot ".tools\bin\cloudflared.exe"
 $tunnelPidFile = Join-Path $projectRoot ".cloudflare-tunnel.pid"
 
@@ -45,7 +46,7 @@ if (Test-Path -LiteralPath $cloudflaredPath) {
         ForEach-Object { Stop-Process -Id $_.ProcessId -ErrorAction SilentlyContinue }
 }
 
-& wsl.exe -d Ubuntu --cd $projectRoot -- docker compose down
+& wsl.exe -d Ubuntu --cd $projectRoot -- docker compose --env-file .env -f $composeFile down
 if ($LASTEXITCODE -ne 0) {
     throw "Docker Compose failed to stop the ML API."
 }
