@@ -17,6 +17,8 @@ runs locally, and the laptop is never exposed through an open inbound port.
 
 [Live application](https://smasifhossain.github.io/somnisignal/) | [Model card](docs/MODEL_CARD.md) | [Security design](SECURITY.md) | [Release gates](docs/RELEASE_GATES.md)
 
+If SomniSignal is useful to you, consider [starring the repository](https://github.com/smAsifHossain/somnisignal). It helps others discover and support the project.
+
 </div>
 
 ---
