@@ -7,6 +7,7 @@ Set-StrictMode -Version Latest
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $healthUrl = "http://127.0.0.1:8000/health"
 $environmentFile = Join-Path $projectRoot ".env"
+$composeFile = "deploy/compose.yaml"
 $cloudflaredPath = Join-Path $projectRoot ".tools\bin\cloudflared.exe"
 $wranglerEntryPoint = Join-Path $projectRoot "worker\node_modules\wrangler\bin\wrangler.js"
 $tunnelPidFile = Join-Path $projectRoot ".cloudflare-tunnel.pid"
@@ -57,7 +58,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Starting the ML API container..."
-& wsl.exe -d Ubuntu --cd $projectRoot -- docker compose up --build -d
+& wsl.exe -d Ubuntu --cd $projectRoot -- docker compose --env-file .env -f $composeFile up --build -d
 if ($LASTEXITCODE -ne 0) {
     throw "Docker Compose failed to start the ML API."
 }
@@ -78,7 +79,7 @@ for ($attempt = 1; $attempt -le 45; $attempt++) {
 }
 
 if (-not $healthy) {
-    & wsl.exe -d Ubuntu --cd $projectRoot -- docker compose ps
+    & wsl.exe -d Ubuntu --cd $projectRoot -- docker compose --env-file .env -f $composeFile ps
     throw "The container started, but the health endpoint did not become ready."
 }
 
