@@ -19,6 +19,14 @@ runs locally, and the laptop is never exposed through an open inbound port.
 
 If SomniSignal is useful to you, consider [starring the repository](https://github.com/smAsifHossain/somnisignal). It helps others discover and support the project.
 
+### Video walkthrough
+
+<a href="https://www.youtube.com/watch?v=NCTUHNkg-OI">
+  <img src="https://img.youtube.com/vi/NCTUHNkg-OI/maxresdefault.jpg" alt="Watch the SomniSignal video walkthrough" width="720">
+</a>
+
+[Watch the SomniSignal walkthrough on YouTube](https://www.youtube.com/watch?v=NCTUHNkg-OI)
+
 </div>
 
 ---
