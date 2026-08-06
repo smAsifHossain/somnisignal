@@ -48,7 +48,6 @@ technically adequate home sleep-apnea test.
 - Asynchronous jobs with live progress, cancellation, and 15-minute result expiry.
 - One-job concurrency, a 25 MB upload limit, and immediate raw-file deletion.
 - Light and dark interface themes with no accounts, behavioral analytics, or result history.
-- Privacy-safe aggregate count of completed screenings across the public app.
 - Private laptop origin reached only through an authenticated Cloudflare tunnel.
 - Grouped model validation that keeps every recording in a single fold.
 
@@ -204,20 +203,18 @@ Instructions for preparing PhysioNet test records are in
 
 The laptop API requires `Authorization: Bearer <token>` on every `/v1` route. The
 token belongs only in `.env` and the Worker secret store. It must never be added to
-frontend code. The public `/v1/stats` route is served directly by the Worker and
-does not contact the laptop.
+frontend code.
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | `POST` | `/v1/research-predictions` | Submit an authorized adult ECG record for research analysis |
 | `POST` | `/v1/demo-predictions` | Start an allowlisted PhysioNet demonstration |
 | `POST` | `/v1/predictions` | Reserved endpoint outside the public research deployment |
-| `GET` | `/v1/stats` | Return the aggregate number of completed public screenings |
 | `GET` | `/v1/predictions/{job_id}` | Poll queued, running, completed, or failed state |
 | `DELETE` | `/v1/predictions/{job_id}` | Cancel a job and delete its temporary state |
 
-The browser-facing Worker exposes only the research flow, aggregate statistics,
-health status, polling, and deletion. When the laptop is offline it returns a
+The browser-facing Worker exposes only the research flow, health status, polling,
+and deletion. When the laptop is offline it returns a
 temporary-offline response; it never substitutes a cached prediction.
 
 ## Training
@@ -304,11 +301,6 @@ failure, timeout, or cancellation. Results remain in memory for 15 minutes. The
 application does not provide accounts, history, advertising, or third-party
 analytics, and application logs exclude filenames, ECG values, tokens, request
 bodies, IP addresses, and individual predictions.
-
-The public Worker stores an aggregate completed-screening count. It briefly retains
-random job IDs only to prevent the same completed job from being counted more than
-once; the counter does not store an ECG, prediction, filename, IP address, or user
-identity.
 
 The public interface asks users to confirm that they have permission to analyze the
 ECG data and have removed identifying fields. Diagnostic and clinical deployment
