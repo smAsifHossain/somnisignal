@@ -13,6 +13,8 @@
   const analysisStage = document.querySelector("#analysis-stage");
   const analysisDetail = document.querySelector("#analysis-detail");
   const analysisElapsed = document.querySelector("#analysis-elapsed");
+  const screeningCount = document.querySelector("#screening-count");
+  const screeningCountValue = document.querySelector("#screening-count-value");
   let turnstileToken = "";
   let elapsedTimer = null;
   let stageTimer = null;
@@ -55,6 +57,25 @@
     const dot = document.createElement("i");
     serviceStatus.append(dot, document.createTextNode(text));
     serviceStatus.className = `service-status ${state}`;
+  }
+
+  async function refreshScreeningCount(animate = false) {
+    if (config.LOCAL_DEMO_MODE || !baseUrl || !screeningCount || !screeningCountValue) return;
+    try {
+      const response = await fetch(`${baseUrl}/v1/stats`, { cache: "no-store" });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (!Number.isSafeInteger(payload.completed_analyses) || payload.completed_analyses < 0) return;
+      screeningCountValue.textContent = new Intl.NumberFormat().format(payload.completed_analyses);
+      screeningCount.hidden = false;
+      if (animate) {
+        screeningCount.classList.remove("updated");
+        void screeningCount.offsetWidth;
+        screeningCount.classList.add("updated");
+      }
+    } catch {
+      // The aggregate counter is optional and must never block the screening flow.
+    }
   }
 
   async function checkHealth() {
@@ -249,6 +270,7 @@
       const result = await waitForResult(accepted.status_url);
       stopLiveAnalysis(true);
       showResult(result);
+      await refreshScreeningCount(true);
       uploadMessage.textContent = "Complete — raw ECG deleted — research result ready";
     } catch (error) {
       stopLiveAnalysis(false);
@@ -261,6 +283,7 @@
   });
 
   checkHealth();
+  refreshScreeningCount();
   if (!config.LOCAL_DEMO_MODE && config.TURNSTILE_SITE_KEY) {
     const script = document.createElement("script");
     script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";

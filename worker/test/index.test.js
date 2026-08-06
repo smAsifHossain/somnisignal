@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import worker, { RateLimiter } from "../src/index.js";
+import worker, { AnalysisCounter, RateLimiter } from "../src/index.js";
 
 const ORIGIN = "https://smasifhossain.github.io";
 
@@ -18,6 +18,14 @@ function baseEnv() {
     RATE_LIMITER: {
       idFromName: (name) => name,
       get: () => ({ fetch: async () => new Response(null, { status: 204 }) })
+    },
+    ANALYSIS_COUNTER: {
+      idFromName: (name) => name,
+      get: () => ({
+        fetch: async (_url, init = {}) => Response.json({
+          completed_analyses: init.method === "POST" ? 1 : 0
+        })
+      })
     }
   };
 }
@@ -114,6 +122,62 @@ test("enforces a rolling three-request hourly limit", async () => {
   const blocked = await limiter.fetch();
   assert.equal(blocked.status, 429);
   assert.ok(Number(blocked.headers.get("Retry-After")) > 0);
+});
+
+test("counts each completed job only once", async () => {
+  const values = new Map();
+  const storage = {
+    get: async (key) => values.get(key),
+    put: async (key, value) => { values.set(key, value); },
+    delete: async (key) => { values.delete(key); },
+    setAlarm: async () => {},
+    transaction: async (callback) => callback(storage)
+  };
+  const counter = new AnalysisCounter({ storage });
+  const firstJob = "a".repeat(32);
+  const secondJob = "b".repeat(32);
+
+  const complete = (jobId) => counter.fetch(new Request("https://counter.internal/completed", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ job_id: jobId })
+  }));
+
+  assert.equal((await (await complete(firstJob)).json()).completed_analyses, 1);
+  assert.equal((await (await complete(firstJob)).json()).completed_analyses, 1);
+  assert.equal((await (await complete(secondJob)).json()).completed_analyses, 2);
+  const total = await counter.fetch(new Request("https://counter.internal/count"));
+  assert.deepEqual(await total.json(), { completed_analyses: 2 });
+});
+
+test("serves aggregate statistics without contacting the laptop", async () => {
+  const env = baseEnv();
+  env.ML_API_TOKEN = "";
+  env.ML_ORIGIN = null;
+  env.ANALYSIS_COUNTER.get = () => ({
+    fetch: async () => Response.json({ completed_analyses: 17 })
+  });
+
+  const response = await worker.fetch(request("/v1/stats"), env);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { completed_analyses: 17 });
+});
+
+test("records a completed polling result in the aggregate counter", async () => {
+  const env = baseEnv();
+  const jobId = "c".repeat(32);
+  let countedJobId = "";
+  env.ML_ORIGIN.fetch = async () => Response.json({ status: "completed", result: {} });
+  env.ANALYSIS_COUNTER.get = () => ({
+    fetch: async (_url, init = {}) => {
+      if (init.method === "POST") countedJobId = JSON.parse(init.body).job_id;
+      return Response.json({ completed_analyses: 1 });
+    }
+  });
+
+  const response = await worker.fetch(request(`/v1/predictions/${jobId}`), env);
+  assert.equal(response.status, 200);
+  assert.equal(countedJobId, jobId);
 });
 
 test("rejects an oversized multipart request before verification", async () => {

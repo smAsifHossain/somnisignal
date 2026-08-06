@@ -2,6 +2,7 @@ const MAX_REQUEST_BYTES = 25 * 1024 * 1024 + 128 * 1024;
 const TURNSTILE_ACTION = "research_upload";
 const RATE_LIMIT = 3;
 const RATE_WINDOW_MS = 60 * 60 * 1000;
+const RECENT_COMPLETION_TTL_MS = 60 * 60 * 1000;
 const PRIVATE_ORIGIN = "http://localhost:8000";
 
 function corsHeaders(origin) {
@@ -113,13 +114,115 @@ export class RateLimiter {
   }
 }
 
+export class AnalysisCounter {
+  constructor(state) {
+    this.state = state;
+  }
+
+  async fetch(request) {
+    if (request.method === "GET") {
+      const count = Number(await this.state.storage.get("completedCount")) || 0;
+      return Response.json({ completed_analyses: count });
+    }
+
+    if (request.method !== "POST") {
+      return new Response(null, { status: 405 });
+    }
+
+    let payload;
+    try {
+      payload = await request.json();
+    } catch {
+      return Response.json({ detail: "Invalid request." }, { status: 400 });
+    }
+
+    const jobId = String(payload.job_id || "");
+    if (!/^[0-9a-f]{32}$/.test(jobId)) {
+      return Response.json({ detail: "Invalid job identifier." }, { status: 400 });
+    }
+
+    const now = Date.now();
+    const cutoff = now - RECENT_COMPLETION_TTL_MS;
+    const count = await this.state.storage.transaction(async (transaction) => {
+      const stored = (await transaction.get("recentCompletions")) || {};
+      const recentCompletions = Object.fromEntries(
+        Object.entries(stored).filter(([, completedAt]) => completedAt > cutoff)
+      );
+      let completedCount = Number(await transaction.get("completedCount")) || 0;
+
+      if (!(jobId in recentCompletions)) {
+        recentCompletions[jobId] = now;
+        completedCount += 1;
+      }
+
+      await transaction.put("completedCount", completedCount);
+      await transaction.put("recentCompletions", recentCompletions);
+      return completedCount;
+    });
+    await this.state.storage.setAlarm(now + RECENT_COMPLETION_TTL_MS);
+    return Response.json({ completed_analyses: count });
+  }
+
+  async alarm() {
+    const now = Date.now();
+    const cutoff = now - RECENT_COMPLETION_TTL_MS;
+    const stored = (await this.state.storage.get("recentCompletions")) || {};
+    const recentCompletions = Object.fromEntries(
+      Object.entries(stored).filter(([, completedAt]) => completedAt > cutoff)
+    );
+
+    if (Object.keys(recentCompletions).length === 0) {
+      await this.state.storage.delete("recentCompletions");
+      return;
+    }
+
+    await this.state.storage.put("recentCompletions", recentCompletions);
+    const nextExpiry = Math.min(...Object.values(recentCompletions)) + RECENT_COMPLETION_TTL_MS;
+    await this.state.storage.setAlarm(nextExpiry);
+  }
+}
+
 function isAllowedRoute(method, pathname) {
   if (method === "GET" && pathname === "/health") return true;
+  if (method === "GET" && pathname === "/v1/stats") return true;
   if (method === "POST" && pathname === "/v1/research-predictions") return true;
   if (["GET", "DELETE"].includes(method) && /^\/v1\/predictions\/[0-9a-f]{32}$/.test(pathname)) {
     return true;
   }
   return false;
+}
+
+function analysisCounter(env) {
+  if (!env.ANALYSIS_COUNTER) return null;
+  return env.ANALYSIS_COUNTER.get(env.ANALYSIS_COUNTER.idFromName("global"));
+}
+
+async function getAnalysisCount(env, allowedOrigin) {
+  const counter = analysisCounter(env);
+  if (!counter) {
+    return jsonResponse({ detail: "Screening statistics are temporarily unavailable." }, 503, allowedOrigin);
+  }
+  try {
+    const response = await counter.fetch("https://analysis-counter.internal/count");
+    const payload = await response.json();
+    return jsonResponse(payload, response.status, allowedOrigin);
+  } catch {
+    return jsonResponse({ detail: "Screening statistics are temporarily unavailable." }, 503, allowedOrigin);
+  }
+}
+
+async function countCompletedAnalysis(env, jobId) {
+  const counter = analysisCounter(env);
+  if (!counter) return;
+  try {
+    await counter.fetch("https://analysis-counter.internal/completed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job_id: jobId })
+    });
+  } catch {
+    // A statistics failure must never prevent delivery of a screening result.
+  }
 }
 
 async function proxyRequest(request, env, allowedOrigin) {
@@ -171,6 +274,10 @@ export default {
       return jsonResponse({ detail: "Not found." }, 404, allowedOrigin);
     }
 
+    if (request.method === "GET" && url.pathname === "/v1/stats") {
+      return getAnalysisCount(env, allowedOrigin);
+    }
+
     if (!env.ML_API_TOKEN || !env.ML_ORIGIN) {
       return jsonResponse({ detail: "Screening service temporarily offline." }, 503, allowedOrigin);
     }
@@ -203,6 +310,20 @@ export default {
       }
     }
 
-    return proxyRequest(request, env, allowedOrigin);
+    const response = await proxyRequest(request, env, allowedOrigin);
+    const completedMatch = request.method === "GET"
+      ? url.pathname.match(/^\/v1\/predictions\/([0-9a-f]{32})$/)
+      : null;
+    if (completedMatch && response.ok) {
+      try {
+        const job = await response.clone().json();
+        if (job.status === "completed") {
+          await countCompletedAnalysis(env, completedMatch[1]);
+        }
+      } catch {
+        // Preserve the upstream response if its body cannot be inspected.
+      }
+    }
+    return response;
   }
 };
